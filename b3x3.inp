@@ -1,0 +1,63 @@
+=polaris
+title "3x3 BWR bwr_void_frac_00"
+lib mg="broad_lwr"
+sys BWR
+geometry ge14 : ASSM npins=3
+                ppitch=1.295
+shield ALL=N FUEL=P GAD=R
+deplete  FUEL=YES GAD=YES
+comp U35 : UOX 3.5
+comp U45 : UOX 4.5
+comp U40 : UOX 4.0
+comp U40GD40  : WT GD2O3=4.0 U40 = -100
+mat FUEL.1  : U35 10.52
+mat GAD.1   : U40GD40 10.38
+mat FUEL.2  : U45 10.52
+% pins
+pin 1 : 0.438     0.44704     0.51308
+      : FUEL.1 GAP.1 CLAD.1
+pin 2 : 0.438    0.44704     0.51308
+      : FUEL.2 GAP.1 CLAD.1
+pin G : 0.438     0.44704     0.51308
+      : GAD.1 GAP.1 CLAD.1
+
+% meshing
+mesh FUEL : nr=3
+mesh GAD.1 : nr=5
+% pin map
+pinmap
+1 1 1
+1 G 2
+2 2 2
+
+
+state ALL : temp=570.0
+  CLAD : temp=700
+  TUBE : temp=560
+  MOD :  temp=560
+FUEL : temp=900.0
+COOL : temp=560 void=0.0 boron=0.0
+
+read history VF_40
+  power 40
+  bu    0.01 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 15.0 20.0 25.0 30.0
+end history
+read branch FT
+  add FUEL : temp=800.0  1000.0
+end branch
+read branch VF
+  add COOL : temp=560     560
+             void=0.0     70.0
+end branch
+read branch CB
+  add COOL : boron=800.0
+end branch
+
+opt DEPL
+  ArchiveF71="NONE"
+  ArchiveF33="NONE"
+
+opt FG
+  ArchiveNodalFormat='H5'
+  : : 3740.0 0.625 
+end
