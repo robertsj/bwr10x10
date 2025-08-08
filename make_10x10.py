@@ -1,4 +1,4 @@
-# Make 10x10
+# Make 10x10 inputs in ./inp
 
 _temp_nomi_ = """=shell
   ln -sf $BWRLIBS/mg_bwr mg_bwr

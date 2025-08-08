@@ -1,16 +1,7 @@
-#!/usr/bin/env python3
 """
 polaris_to_df.py
 Read a Polaris (SCALE) lattice HDF5 result, including pin-power-factors (PPFs),
-and return / write a Pohjantahti-style pandas DataFrame.
-
-Changes v2
------------
-* NEW:  PPFs support – flattens an (nrow, ncol) array to columns
-        ppf_r<i>_c<j>  (1-based indices to match human convention).
-* NEW:  retains `depl_idx`, `branch_idx`, `homog_idx` columns so tests may
-        resolve the exact H5 path later.
-* Generalised to any (row, col) size: works for single pin (1x1) and 3x3, 10x10.
+and return / write a pandas DataFrame.
 """
 
 import re
@@ -28,21 +19,59 @@ import pandas as pd
 # 0. Case-specific metadata (edit per study)
 # --------------------------------------------------------------------
 BRANCH_MAP = {
-    # branchIdx :  FT [°C],  VF [%], CB [ppm]
-     0: {"FT": 900.0, "VF": 40.0, "CB": 0.0},  # base
-     1: {"FT": 800.0, "VF": 40.0, "CB": 0.0},
-     2: {"FT": 1000., "VF": 40.0, "CB": 0.0},
-     3: {"FT": 900.0, "VF": 0.0,  "CB": 0.0},
-     4: {"FT": 900.0, "VF": 70.0, "CB": 0.0},
+    0: {"FT": 900.0, "VF": 40.0, "CB": 0.0},  # base, i.e., "history"
+    1: {"FT": 800.0, "VF": 40.0, "CB": 0.0},
+    2: {"FT": 1000.0, "VF": 40.0, "CB": 0.0},
+    3: {"FT": 900.0, "VF": 0.0, "CB": 0.0},
+    4: {"FT": 900.0, "VF": 70.0, "CB": 0.0},
 }
 
-# default few-group paramaters to read
-XS_KEYS = (
-    "capture", "fission", "total", "diffcoef",
-    "transfer",                     # 3 × 3
+
+# All nodal parameters that can currently be read from the HDF5 output.  Many are
+# multigroup, so, e.g., the responses will be chi_1, flux_2, etc.
+ALL_XS_KEYS = (
+    "capture",
+    "chi",
+    "currents",
+    "detFlux",
+    "detXs",
+    "diffcoef",
+    "effabs",
+    "elastic",
+    "fission",
+    "flux",
+    "invVelocity",
+    "kapAbs",
+    "n2n",
+    "nu",
+    "nuFission",
+    "smMac",
+    "smMic",
+    "total",
+    "transfer",
+    "transportInSc",
+    "transportOutSc",
+    "xeMac",
+    "xeMic",
 )
 
-_RE_SPG = re.compile(r"^(\d+)_(\d+)_(\d+)$")    # state-point group name
+# This is a limited set of parameters to read
+XS_KEYS = (
+    "capture",
+    "chi",
+    "diffcoef",
+    "effabs",
+    "elastic",
+    "fission",
+    "flux",
+    "nuFission",
+    "total",
+    "transfer",
+)
+
+
+_RE_SPG = re.compile(r"^(\d+)_(\d+)_(\d+)$")  # state-point group name
+
 
 # --------------------------------------------------------------------
 # 1. low-level helpers
@@ -54,6 +83,7 @@ def _normalize_branch_map(d):
     """
     return {int(k): v for k, v in d.items()}
 
+
 def _iter_state_groups(h5):
     """Yield (name, depl, br, hom) for every recognised state-point group."""
     for name in h5:
@@ -64,11 +94,11 @@ def _iter_state_groups(h5):
 
 def _flatten_xs(grp, keys):
     out = {}
-    G = grp["xs"]["capture"].shape[0]           # no. energy groups
+    G = grp["xs"]["capture"].shape[0]  # no. energy groups
 
     for key in keys:
         if key == "transfer":
-            mat = grp["xs"][key][()]            # (G, G)
+            mat = grp["xs"][key][()]  # (G, G)
             for g_to in range(G):
                 for g_from in range(G):
                     out[f"{key}_{g_to+1}_{g_from+1}"] = float(mat[g_to, g_from])
@@ -82,15 +112,13 @@ def _flatten_xs(grp, keys):
 def _flatten_ppfs(ppf):
     """Return dict with column names ppf_<i>_<j>."""
     nrow, ncol = ppf.shape
-    return {f"ppf_{i}_{j}": float(ppf[i, j])
-            for i in range(nrow) for j in range(ncol)}
+    return {f"ppf_{i}_{j}": float(ppf[i, j]) for i in range(nrow) for j in range(ncol)}
 
 
 # --------------------------------------------------------------------
 # 2. main API
 # --------------------------------------------------------------------
-def polaris_to_dataframe(h5file, branch_map=BRANCH_MAP,
-                         xs_keys=XS_KEYS, sample_idx=0):
+def polaris_to_dataframe(h5file, branch_map=BRANCH_MAP, xs_keys=XS_KEYS, sample_idx=0):
     branch_map = _normalize_branch_map(branch_map)
     rows = []
 
@@ -127,8 +155,11 @@ def polaris_to_dataframe(h5file, branch_map=BRANCH_MAP,
 
             rows.append(rec)
 
-    df = pd.DataFrame(rows).sort_values(
-        ["depl_idx", "branch_idx", "homog_idx"]).reset_index(drop=True)
+    df = (
+        pd.DataFrame(rows)
+        .sort_values(["depl_idx", "branch_idx", "homog_idx"])
+        .reset_index(drop=True)
+    )
     return df
 
 
@@ -137,18 +168,17 @@ def polaris_to_dataframe(h5file, branch_map=BRANCH_MAP,
 # --------------------------------------------------------------------
 def _main():
     ap = argparse.ArgumentParser(
-        description="Convert Polaris H5 to Pohjantahti-style CSV (with PPFs)")
+        description="Convert Polaris H5 to Pohjantahti-style CSV (with PPFs)"
+    )
     ap.add_argument("h5file")
-    ap.add_argument("-o", "--outfile",
-                    help="output CSV (default same basename)")
-    ap.add_argument("--branch-map",
-                    help="JSON overriding the hard-coded BRANCH_MAP")
-    ap.add_argument("--xs", nargs="+",
-                    help="space-separated list of XS keys to extract")
+    ap.add_argument("-o", "--outfile", help="output CSV (default same basename)")
+    ap.add_argument("--branch-map", help="JSON overriding the hard-coded BRANCH_MAP")
+    ap.add_argument(
+        "--xs", nargs="+", help="space-separated list of XS keys to extract"
+    )
     args = ap.parse_args()
 
-    branch_map = (json.load(open(args.branch_map))
-                  if args.branch_map else BRANCH_MAP)
+    branch_map = json.load(open(args.branch_map)) if args.branch_map else BRANCH_MAP
     xs_keys = tuple(args.xs) if args.xs else XS_KEYS
 
     df = polaris_to_dataframe(args.h5file, branch_map, xs_keys)
@@ -156,5 +186,7 @@ def _main():
     df.to_csv(out, index=False)
     print(f"{len(df):,} state-points → {out}")
     return df
+
+
 if __name__ == "__main__":
     df = _main()
