@@ -1,0 +1,169 @@
+=polaris
+title "10x10 BWR void=40"
+lib mg="mg_bwr"
+system BWR
+deplete ALL=false FUEL=true
+geom bwr10x10 : ASSM 10 1.2954
+hgap 0.47498 0.9525
+box thick=0.2032
+    rad=0.7
+    hspan=6.70306
+    MBox=CAN.1
+
+comp enr1 : UOX 2.8
+comp enr2 : UOX 5
+
+comp gd200 : WT GD2O3=6 enr2=-100
+comp gd201 : WT GD2O3=0 enr2=-100
+comp gd202 : WT GD2O3=6 enr2=-100
+comp gd203 : WT GD2O3=0 enr2=-100
+comp gd204 : WT GD2O3=0 enr2=-100
+comp gd205 : WT GD2O3=0 enr2=-100
+comp gd206 : WT GD2O3=0 enr2=-100
+comp gd207 : WT GD2O3=6 enr2=-100
+comp gd208 : WT GD2O3=0 enr2=-100
+comp gd209 : WT GD2O3=8 enr2=-100
+comp gd210 : WT GD2O3=8 enr2=-100
+comp gd211 : WT GD2O3=6 enr2=-100
+
+comp enr4 : UOX 3.6
+comp enr5 : UOX 2.4
+comp enr6 : UOX 4.0
+comp enr7 : UOX 4.8
+comp enr8 : UOX 3.6
+comp enr9 : UOX 1.6
+comp enr10 : UOX 4.8
+
+comp gd212 : WT GD2O3=6 enr10=-100
+comp gd213 : WT GD2O3=6 enr6=-100
+
+
+mat FUEL.1 : enr1 10.64
+mat FUEL.2 : enr2 10.64
+mat FUEL.200 : gd200 10.4462
+mat FUEL.201 : gd201 10.64
+mat FUEL.202 : gd202 10.4462
+mat FUEL.203 : gd203 10.64
+mat FUEL.204 : gd204 10.64
+mat FUEL.205 : gd205 10.64
+mat FUEL.206 : gd206 10.64
+mat FUEL.207 : gd207 10.4462
+mat FUEL.208 : gd208 10.64
+mat FUEL.209 : gd209 10.3816
+mat FUEL.210 : gd210 10.3816
+mat FUEL.211 : gd211 10.4462
+mat FUEL.212 : gd212 10.4462
+mat FUEL.213 : gd213 10.4462
+
+mat FUEL.4 : enr4 10.64
+mat FUEL.5 : enr5 10.64
+mat FUEL.6 : enr6 10.64
+mat FUEL.7 : enr7 10.64
+mat FUEL.8 : enr8 10.64
+mat FUEL.9 : enr9 10.64
+mat FUEL.10 : enr10 10.64
+
+pin 1 : 0.438 0.447 0.513 : FUEL.1 GAP CLAD
+pin 2 : 0.438 0.447 0.513 : FUEL.2 GAP CLAD
+pin 200 : 0.438 0.447 0.513 : FUEL.200 GAP CLAD
+pin 201 : 0.438 0.447 0.513 : FUEL.201 GAP CLAD
+pin 202 : 0.438 0.447 0.513 : FUEL.202 GAP CLAD
+pin 203 : 0.438 0.447 0.513 : FUEL.203 GAP CLAD
+pin 204 : 0.438 0.447 0.513 : FUEL.204 GAP CLAD
+pin 205 : 0.438 0.447 0.513 : FUEL.205 GAP CLAD
+pin 206 : 0.438 0.447 0.513 : FUEL.206 GAP CLAD
+pin 207 : 0.438 0.447 0.513 : FUEL.207 GAP CLAD
+pin 208 : 0.438 0.447 0.513 : FUEL.208 GAP CLAD
+pin 209 : 0.438 0.447 0.513 : FUEL.209 GAP CLAD
+pin 210 : 0.438 0.447 0.513 : FUEL.210 GAP CLAD
+pin 211 : 0.438 0.447 0.513 : FUEL.211 GAP CLAD
+pin 212 : 0.438 0.447 0.513 : FUEL.212 GAP CLAD
+pin 213 : 0.438 0.447 0.513 : FUEL.213 GAP CLAD
+pin W 2 : 1.2 1.28 : MOD.1 TUBE.1
+pin 4 : 0.438 0.447 0.513 : FUEL.4 GAP CLAD
+pin 5 : 0.438 0.447 0.513 : FUEL.5 GAP CLAD
+pin 6 : 0.438 0.447 0.513 : FUEL.6 GAP CLAD
+pin 7 : 0.438 0.447 0.513 : FUEL.7 GAP CLAD
+pin 8 : 0.438 0.447 0.513 : FUEL.8 GAP CLAD
+pin 9 : 0.438 0.447 0.513 : FUEL.9 GAP CLAD
+pin 10 : 0.438 0.447 0.513 : FUEL.10 GAP CLAD
+
+% control rod absorber pin
+pin  C :  0.17526 0.23876  :  CNTL.2  STRUCT.1  MOD.2
+control OEM  :  BLADE  0.39624  0.14224  1.98501
+                       wgcrv=0.39624
+             :  C
+             :  10.02792
+             :  21
+
+mesh FUEL : nr=3 
+mesh FUEL.200 : nr=5
+mesh FUEL.201  : nr=5
+mesh FUEL.202  : nr=5
+mesh FUEL.203  : nr=5
+mesh FUEL.204  : nr=5
+mesh FUEL.205  : nr=5
+mesh FUEL.206  : nr=5
+mesh FUEL.207  : nr=5
+mesh FUEL.208  : nr=5
+mesh FUEL.209  : nr=5
+mesh FUEL.210  : nr=5
+mesh FUEL.211  : nr=5
+mesh FUEL.212  : nr=5
+mesh FUEL.213  : nr=5
+mesh MOD : nf=4 nd=5 nx=10 ny=10 ns=16 nr=4
+mesh COOL  : nx=9 ny=9 ns=16 nr=2
+
+
+pinmap
+9
+5	8
+1	213	2
+8	6	212	10
+6	211	2	210	2
+6	2	209	W	W	2
+4	2	10	W	W	2	200
+8	208	2	206	2	204	2	201
+1	10	207	2	205	2	203	2	202
+5	8	10	7	7	7	7	7	6	8
+
+      
+shield ALL=N FUEL=P FUEL.200=R FUEL.201=R FUEL.202=R FUEL.203=R FUEL.204=R FUEL.205=R FUEL.206=R FUEL.207=R FUEL.208=R FUEL.209=R FUEL.210=R FUEL.211=R FUEL.212=R FUEL.213=R  CNTL=R
+
+state ALL : temp=570.0
+     CLAD : temp=700
+     TUBE : temp=560
+      MOD :  temp=560
+
+FUEL : temp=900.0
+COOL : temp=558.98 void=40.0
+OEM  : in = False
+
+read history bwr_void_frac_40_pert_00005
+  power 40
+  bu     0.01 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0 15.0 20.0 25.0 30.0 40.0 50.0 60.0
+end history
+
+read branch FT
+  add FUEL : temp=800.0  1000.0
+end branch
+
+read branch VF
+  add COOL : temp=558.98  558.98  558.98
+             void=0.0  40.0  70.0
+end branch
+
+read branch CB
+  add OEM  : in = True
+end branch
+
+
+opt DEPL
+  ArchiveF71="NONE"
+  ArchiveF33="NONE"
+
+opt FG
+  ArchiveNodalFormat='H5'
+  : : 9118.8 0.625
+
+end
